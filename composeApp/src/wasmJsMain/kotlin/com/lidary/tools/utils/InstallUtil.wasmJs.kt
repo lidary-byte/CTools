@@ -1,5 +1,8 @@
 package com.lidary.tools.utils
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 
 /**
  * @Author : lidary-byte
@@ -11,8 +14,8 @@ class WasmInstallApps : InstallApps {
         get() = emptyList<String>()
 }
 
-actual fun getInstallApps(): InstallApps {
-    return WasmInstallApps()
+actual suspend fun getInstallApps(): InstallApps =  withContext(Dispatchers.Default){
+    return@withContext WasmInstallApps()
 }
 
 

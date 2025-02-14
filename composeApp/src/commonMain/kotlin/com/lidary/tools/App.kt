@@ -2,74 +2,73 @@ package com.lidary.tools
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material.Card
+import androidx.compose.material.Divider
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import com.lidary.tools.entity.ApplicationInfoEntity
 import com.lidary.tools.utils.getInstallApps
+import com.lidary.tools.widget.Search
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
 
 @Composable
 @Preview
 fun App() {
-    val installApps = getInstallApps()
-
+    var installApps by remember { mutableStateOf(emptyList<ApplicationInfoEntity>()) }
+    var searchList by remember { mutableStateOf(installApps) }
+    // 用于控制协程的作用域
+    val coroutineScope = rememberCoroutineScope()
+    // 在首次加载时启动协程获取已安装应用列表
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            // 假设 getInstallApps 是一个 suspend 函数，调用它获取数据
+            val apps = getInstallApps()
+            installApps = apps.appsName.toMutableStateList()
+            // 初始时将所有应用赋值给 searchList
+            searchList = installApps
+        }
+    }
     MaterialTheme {
-        var searchText by remember { mutableStateOf(TextFieldValue("")) }
-        val commands = listOf(
-            "Open App",
-            "Search Files",
-            "View System Status",
-            "Run Command",
-            "Settings"
-        )
-
+        var searchText by remember { mutableStateOf("") }
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp) // 设置深色背景
         ) {
             // 搜索框
-            SearchBox(searchText) { searchText = it }
-
-//            Spacer(modifier = Modifier.height(20.dp))
-//
-//            // 命令列表
-//            CommandList(commands.filter { it.contains(searchText.text, ignoreCase = true) })
-            List(installApps.appsName.size) {
-                Text(installApps.appsName[it])
+            Search(searchText) {
+                searchText = it
+                searchList = installApps.filter { it.name?.contains(searchText, ignoreCase = true) == true }
             }
-
+            Divider()
+            Box() {
+                LazyColumn(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    items(searchList.size) {
+                        if (it == 0) {
+                            Spacer(modifier = Modifier.height(14.dp))
+                        }
+                        Text(searchList[it].name ?: "", modifier = Modifier.fillMaxWidth())
+                        if (it == searchList.size - 1) {
+                            Spacer(modifier = Modifier.height(14.dp))
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
-
-@Composable
-fun SearchBox(searchText: TextFieldValue, onSearchTextChanged: (TextFieldValue) -> Unit) {
-    OutlinedTextField(
-        value = searchText,
-        onValueChange = onSearchTextChanged,
-        label = { Text("Search") },
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF2C2C2C))
-            .padding(16.dp),
-        singleLine = true,
-        textStyle = MaterialTheme.typography.h6.copy(color = Color.White),
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            backgroundColor = Color(0xFF2C2C2C),
-            focusedBorderColor = Color(0xFF4CAF50),
-            unfocusedBorderColor = Color.Gray
-        )
-    )
-}
 
 @Composable
 fun CommandList(commands: List<String>) {

@@ -1,5 +1,7 @@
 package com.lidary.tools.utils
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 
 /**
@@ -12,8 +14,8 @@ class AndroidInstallApps : InstallApps {
         get() = emptyList<String>()
 }
 
-actual fun getInstallApps(): InstallApps {
-    return AndroidInstallApps()
+actual suspend fun getInstallApps(): InstallApps = withContext(Dispatchers.IO) {
+    return@withContext AndroidInstallApps()
 }
 
 

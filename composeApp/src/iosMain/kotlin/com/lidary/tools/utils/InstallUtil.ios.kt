@@ -1,5 +1,9 @@
 package com.lidary.tools.utils
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
+
 
 /**
  * @Author : lidary-byte
@@ -11,8 +15,8 @@ class IOSInstallApps : InstallApps {
         get() = emptyList<String>()
 }
 
-actual fun getInstallApps(): InstallApps {
-    return IOSInstallApps()
+actual suspend fun getInstallApps(): InstallApps = withContext(Dispatchers.IO) {
+    return@withContext IOSInstallApps()
 }
 
 
